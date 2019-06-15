@@ -1,0 +1,20 @@
+{
+  "name": "line-mutual",
+  "version": "1.0.0",
+  "description": "Line mutual center.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "read",
+    "line",
+    "mutual",
+    "center"
+  ],
+  "author": "Alex liao",
+  "license": "ISC",
+  "dependencies": {
+    "new-promiseify": "^1.1.1"
+  }
+}
