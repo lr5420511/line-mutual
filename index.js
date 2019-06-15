@@ -26,39 +26,36 @@ const Mutual = module.exports = function(options) {
 Mutual.prototype = Object.assign(Object.create(EventEmitter.prototype), {
     constructor: Mutual,
     next: async function() {
-        const { 
-            context, border, borderLength, inner, outer, console 
-        } = this,
-        { 
-            mutuals, mkOrder, defaultAction 
-        } = Mutual,
-        len = arguments.length;
+        const { context, inner, outer, console } = this,
+            { mutuals, defaultAction } = Mutual,
+            len = arguments.length;
         len && (console.log(...arguments));
-        if(mutuals.length) {
-            const menu = [
-                border.repeat(borderLength),
-                ...mkOrder(mutuals.map(cur => cur[0]), borderLength - 4)
-                    .map(cur => `  ${cur}  `),
-                border.repeat(borderLength)
-            ].join('\n\n');   
-            console.log(`\n${menu}`);
-        }
-        outer.write('> ');
+        outer.write('\n> ');
         const command = await once.call(inner, 'data'),
             [n, ...args] = command.match(/[^ \r\n]+/g) || [],
             action = (mutuals[n - 1] && mutuals[n - 1][1]) || defaultAction;
         this.emit(BEFORE_MUTUAL, command, action, this);
         let res;
         try {
-            res = await action(context, inner, console, 
-                ...(action === defaultAction ? [command] : args)    
-            );
+            res = await action(context, inner, console, ...(
+                action === defaultAction ? [command, this.menu.bind(this)] : args
+            ));
         } catch(err) {
             if(!(err instanceof AssertionError) && !err.forecastable) throw err;
             res = err;
         }
         this.emit(AFTER_MUTUAL, command, action, this, res);
         this.next(res);
+    },
+    menu: function() {
+        const { border, borderLength } = this,
+            { mkOrder, mutuals } = Mutual;
+        return [
+            border.repeat(borderLength),
+            ...mkOrder(mutuals.map(cur => cur[0]), borderLength - 2)
+                .map(cur => `  ${cur}`),
+            border.repeat(borderLength)
+        ].join('\n\n');
     }
 });
 
@@ -84,7 +81,12 @@ Object.assign(Mutual, {
             return `${cur}${' '.repeat(Math.abs(count))}`;
         });
     },
-    defaultAction: function(ctx, input, output, code) {
-        return Function('ctx', `return ${code};`)(ctx);
+    defaultAction: function(ctx, input, output, code, menu) {
+        try {
+            return Function('ctx', 'menu', `return ${code};`)(ctx, menu);
+        } catch(err) {
+            err.forecastable = true;
+            throw err;
+        }
     }
 });

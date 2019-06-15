@@ -1,6 +1,6 @@
 {
   "name": "line-mutual",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Line mutual center.",
   "main": "index.js",
   "scripts": {
