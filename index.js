@@ -19,7 +19,9 @@ const Mutual = module.exports = function(options) {
     inner = this.inner = inner instanceof Readable ? inner : process.stdin;
     outer = this.outer = outer instanceof Writable ? outer : process.stdout;
     inner.setEncoding(decode);
-    this.console = new console.__proto__.constructor(outer);
+    this.console = Object.assign(new console.__proto__.constructor(outer), {
+        stream: outer
+    });
     EventEmitter.call(this);
 };
 
